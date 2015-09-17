@@ -1,0 +1,29 @@
+# One may have a look at http://docs.travis-ci.com/user/installing-dependencies/
+
+language: c
+
+notifications:
+  - email: true
+
+sudo: true
+
+cache: ccache
+
+before_install:
+  # Downloading estuary
+  - mkdir -p ~/bin; sudo apt-get update; sudo apt-get upgrade -y; sudo apt-get install -y wget git
+  - wget -c http://7xjz0v.com1.z0.glb.clouddn.com/tools/repo -O ~/bin/repo
+  - chmod a+x ~/bin/repo; echo 'export PATH=~/bin:$PATH' >> ~/.bashrc; export PATH=~/bin:$PATH; mkdir -p ~/open-estuary; cd ~/open-estuar
+  - repo init -u "https://github.com/open-estuary/estuary.git" -b refs/tags/estuary-v2.0 --no-repo-verify --repo-url=git://android.git.linaro.org/tools/repo
+  - repo sync
+  
+before_script:
+  #Nothing as of now
+
+# Several compilation options are checked
+script:
+  # Build and Run estuary on QEMU
+  - ./estuary/build.sh -p QEMU -d Ubuntu
+  
+  # Run regression tests (xtest in QEMU)
+  - (cd ${HOME}/optee_repo/build && make -s -j8 check CROSS_COMPILE="ccache arm-linux-gnueabihf-" DUMP_LOGS_ON_ERROR=1)
